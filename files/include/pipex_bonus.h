@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.h                                            :+:      :+:    :+:   */
+/*   pipex_bonus.h                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ffierro- <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/29 16:33:23 by ffierro-          #+#    #+#             */
-/*   Updated: 2024/12/29 16:33:24 by ffierro-         ###   ########.fr       */
+/*   Updated: 2025/01/06 22:42:39 by ffierro-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PIPEX_H
-# define PIPEX_H
+#ifndef PIPEX_BONUS_H
+# define PIPEX_BONUS_H
 
 # include <stdio.h>
 # include <fcntl.h>
@@ -27,6 +27,7 @@
 # define MSG_ERR_JOIN "Error joining path"
 # define MSG_ERR_SPLIT "Error splitting path"
 # define MSG_ERR_ALLOC "Error allocating memory"
+# define BUFFER_SIZE 8
 
 typedef struct s_pipex
 {
@@ -43,5 +44,7 @@ int		init_pipex(t_pipex **pipex, int argc, char **argv, char **envp);
 void	close_pipes(t_pipex *pipex);
 int		close_and_wait(t_pipex *pipex, int *status);
 void	free_memory(t_pipex *pipex);
+char	*get_next_line(int fd);
+int		get_input_file(char *limiter);
 
 #endif

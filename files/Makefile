@@ -11,18 +11,23 @@
 # **************************************************************************** #
 
 NAME = pipex
+NAME_BONUS = pipex_bonus
 CC = cc
 LIB = ar rcs
 RM = rm -f
 CFLAGS = -Wall -Wextra -Werror
 HEADER = include/pipex.h
-#HEADER_BONUS = include/pipex_bonus.h
-SRCS = src/pipex.c
+HEADER_BONUS = include/pipex_bonus.h
+SRCS = src/pipex.c src/childs.c src/utils.c
 OBJS = $(SRCS:.c=.o)
-#SRCS_BONUS = src_bonus/pipex_bonus.c
-#OBJS_BONUS = $(SRCS_BONUS:.c=.o)
+SRCS_BONUS = src_bonus/pipex_bonus.c src_bonus/childs_bonus.c \
+			src_bonus/utils_bonus.c src_bonus/get_next_line_bonus.c \
+			src_bonus/here_doc_bonus.c
+OBJS_BONUS = $(SRCS_BONUS:.c=.o)
 
 all: $(NAME)
+
+bonus: $(NAME_BONUS)
 
 $(NAME): $(OBJS)
 	$(MAKE) -C libft
@@ -30,6 +35,14 @@ $(NAME): $(OBJS)
 	$(CC) $(CFLAGS) -o $(NAME) $(OBJS) libft.a
 
 src/%.o: src/%.c $(HEADER)
+	$(CC) $(CFLAGS) -Iinclude -c $< -o $@
+
+$(NAME_BONUS): $(OBJS_BONUS)
+	$(MAKE) -C libft
+	cp libft/libft.a libft.a
+	$(CC) $(CFLAGS) -o $(NAME_BONUS) $(OBJS_BONUS) libft.a
+
+src_bonus/%.o: src_bonus/%.c $(HEADER_BONUS)
 	$(CC) $(CFLAGS) -Iinclude -c $< -o $@
 
 clean:

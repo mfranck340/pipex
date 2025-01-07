@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.c                                            :+:      :+:    :+:   */
+/*   pipex_bonus.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ffierro- <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/29 16:33:12 by ffierro-          #+#    #+#             */
-/*   Updated: 2024/12/29 16:33:15 by ffierro-         ###   ########.fr       */
+/*   Updated: 2025/01/06 22:43:49 by ffierro-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/pipex.h"
+#include "../include/pipex_bonus.h"
 
 int	create_pipes(int count, int *pipefd)
 {
@@ -54,7 +54,10 @@ int	spawn_child(t_pipex *pipex)
 
 void	free_memory(t_pipex *pipex)
 {
-	close(pipex->in_file);
+	if (ft_strncmp(pipex->argv[1], "here_doc", 8) == 0)
+		unlink(".here_doc");
+	else
+		close(pipex->in_file);
 	close(pipex->out_file);
 	free(pipex->pipefd);
 	free(pipex);
@@ -65,9 +68,10 @@ int	main(int argc, char **argv, char **envp)
 	t_pipex	*pipex;
 	int		status;
 
-	if (argc != 5)
+	if (argc < 5)
 	{
-		ft_printf("Usage: ./pipex <file1> <cmd1> <cmd2> <file2>\n");
+		ft_printf("Usage:\t./pipex <file1> <cmd1> ... <cmd2> <file2>\n");
+		ft_printf("\t./pipex here_doc LIMITER <cmd1> ... <cmd2> <file2>\n");
 		return (1);
 	}
 	if (!init_pipex(&pipex, argc, argv, envp))
