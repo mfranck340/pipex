@@ -3,87 +3,103 @@
 #include "../include/pipex.h"
 #include <stdio.h>
 
-int	has_special_char(char *command)
+
+void	add_index(int *i, int *count, char *command, char limit)
 {
-	int	i;
+	(*count)++;
+	while (command[*i] != '\0' && command[*i] != limit)
+		(*i)++;
+}
+
+int	count_args(char *command)
+{
+	int i;
+	int count;
+	char limit;
 
 	i = 0;
-	while (command[i] != 0)
+	count = 0;
+	while (command[i] != '\0')
 	{
-		if (command[i] == ' ')
+		if (command[i] == '\'' || command[i] == '\"')
 		{
-			if (command[i + 1] == '\'' || command[i] == '\"')
-				return (1);
+			limit = command[i++];
+			add_index(&i, &count, command, limit);
+			if (command[i] != '\0')
+				i++;
 		}
-		i++;
+		else if (command[i] != ' ' )
+			add_index(&i, &count, command, ' ');
+		else
+			i++;
 	}
-	return (0);
+	return (count);
+}
+
+int	read_words()
+{
+	int i;
+	int j;
+	int count;
+	char limit;
+
+	i = 0;
+	j = 0;
+	while (command[i] != '\0')
+	{
+		count = 0;
+		if (command[i] == '\'' || command[i] == '\"')
+		{
+			limit = command[i];
+			count++;
+			while (command[i + count] != '\0' && command[i + count] != limit)
+				count++;
+			count++;
+			args[j] = ft_substr(command, i, count);
+			j++;
+			i+=count;
+		}
+		else if (command[i] != ' ')
+		{
+			count++;
+			while (command[i + count] != '\0' && command[i + count] != ' ')
+				count++;
+			args[j] = ft_substr(command, i, count);
+			j++;
+			i += count;
+		}
+		else
+			i++;
+	}
+	return (1);
 }
 
 char	**parse_command(char *command)
 {
 	int i;
 	int count;
-	int len;
+	char limit;
+	char **args;
 
-	len = ft_strlen(command);
-	count = 0;
-	i = -1;
-	while (++i < len)
-	{
-		if ((command[i] == '\'' || command[i] == '\"')
-				&& (0 == i || (i > 0 && command[i - 1] == ' ')))
-		{
-			ft_printf("case 1 - new arg: %d - %c\n", i, command[i]);
-			count++;
-			while (command[i] != 0 && !((command[i] == '\'' || command[i] == '\"') && (command[i + 1] == ' ' || command[i + 1] == 0)))
-				i++;
-		}
-		else if (command[i] != ' ' )
-		{
-			ft_printf("case 2 - new arg: %d - %c\n", i, command[i]);
-			count++;
-			while (command[i] != 0 && command[i] != ' ')
-				i++;
-		}
-	}
-	ft_printf("count: %d\n", count);
-	return (0);
-}
-
-/*
-char	**get_args_command(char *command)
-{
-	char	**args;
-	int		i;
-	int		opt;
-
-	opt = has_special_char(command);
-	if (opt == 0)
-		args = ft_split(command, ' ');
-	else
-		args = parse_command(command);
+	count = count_args(command);
+	ft_printf("PALABRAS CONTADAS: %d\n", count);
+	args = malloc(sizeof(char *) * (count + 1));
 	if (args == 0)
 	{
-		perror("Error splitting command");
+		perror("Error allocating memory");
 		return (0);
 	}
-	i = 0;
-	while (args[i] != 0)
+	args[count] = 0;
+	if (!read_words())
 	{
-		i++;
-	}
-	if (i == 0)
-	{
-		perror("Error getting command");
+		free(args);
 		return (0);
 	}
 	return (args);
-}*/
+}
 
 int main(int argc, char **argv)
 {
-	int len;
 	int i;
 
 	//char *command = "grep -r -i --include=\"*.log\" \"error\" \"/path/to/logs\" --exclude=\"*.bak\"";
@@ -91,15 +107,17 @@ int main(int argc, char **argv)
 	//char *command = "./prog\\ one";
 	//char *command = "awk '{print "Texto: \"" $0 "\""}'";
 
+	char **args;
 	char *command = argv[1];
-	len = ft_strlen(command);
+
 	i = 0;
-	while (i < len)
+	args = parse_command(command);
+	while (args[i] != 0)
 	{
-		printf("%c\n", command[i]);
+		ft_printf("ARGUMENTO %d: %s\n", i, args[i]);
+		free(args[i]);
 		i++;
 	}
-	
-	parse_command(command);
+	free(args);
 	return (0);
 }
