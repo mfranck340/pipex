@@ -1,88 +1,75 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   pipex.c                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ffierro- <marvin@42.fr>                    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/29 16:33:12 by ffierro-          #+#    #+#             */
-/*   Updated: 2024/12/29 16:33:15 by ffierro-         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+
 
 #include "../include/pipex.h"
 
-int	create_pipes(int count, int *pipefd)
-{
-	int	i;
 
-	i = 0;
-	while (i < 2 * (count - 1))
+
+void	child_process(char **argv, int *fd, int i)
+{
+	int		file;
+
+	if (i == 0)
 	{
-		if (pipe(pipefd + i) == -1)
-		{
-			perror(MSG_ERR_PIPE);
-			return (0);
-		}
-		i += 2;
+		file = open(argv[1], O_RDONLY);
+		if (file == -1)
+			exit_error("open");
+		dup2(file, STDIN_FILENO);
+		dup2(fd[1], STDOUT_FILENO);
 	}
-	return (1);
+	else
+	{
+		file = open(argv[4], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if (file == -1)
+			exit_error("open");
+		dup2(fd[0], STDIN_FILENO);
+		dup2(file, STDOUT_FILENO);
+	}
+	close(fd[0]);
+	close(fd[1]);
+	close(file);
 }
 
-int	spawn_child(t_pipex *pipex)
+void	parent_wait(void)
 {
-	int	pid;
-	int	i;
+	int	status;
 
-	i = 0;
-	while (i < pipex->n_cmds)
+	wait(&status);
+	wait(&status);
+}
+
+void	create_childs(char **argv, char **envp, int *fd)
+{
+	pid_t	pid;
+	int		i;
+
+	i = -1;
+	while (++i < 2)
 	{
 		pid = fork();
 		if (pid == -1)
-		{
-			perror(MSG_ERR_CHILD);
-			return (0);
-		}
+			exit_error("fork");
 		if (pid == 0)
 		{
-			return (child_process(pipex, i));
+			child_process(argv, fd, i);
+			execute(argv[i + 2], envp);
 		}
-		i++;
 	}
-	return (1);
-}
-
-void	free_memory(t_pipex *pipex)
-{
-	close(pipex->in_file);
-	close(pipex->out_file);
-	free(pipex->pipefd);
-	free(pipex);
 }
 
 int	main(int argc, char **argv, char **envp)
 {
-	t_pipex	*pipex;
-	int		status;
+	int		fd[2];
 
-	if (argc != 5)
+	if (argc == 5)
 	{
+		if (pipe(fd) == -1)
+			exit_error("pipe");
+		create_childs(argv, envp, fd);
+		close(fd[0]);
+		close(fd[1]);
+		parent_wait();
+	}
+	else
 		ft_printf("Usage: ./pipex <file1> <cmd1> <cmd2> <file2>\n");
-		return (1);
-	}
-	if (!init_pipex(&pipex, argc, argv, envp))
-		return (1);
-	if (!create_pipes(pipex->n_cmds, pipex->pipefd))
-	{
-		free_memory(pipex);
-		return (1);
-	}
-	if (!spawn_child(pipex))
-	{
-		free_memory(pipex);
-		return (1);
-	}
-	if (!close_and_wait(pipex, &status))
-		return (1);
-	return (status);
+	return (0);
 }

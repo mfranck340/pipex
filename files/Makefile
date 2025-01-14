@@ -18,7 +18,7 @@ RM = rm -f
 CFLAGS = -Wall -Wextra -Werror
 HEADER = include/pipex.h
 HEADER_BONUS = include/pipex_bonus.h
-SRCS = src/pipex.c src/childs.c src/utils.c
+SRCS = src/pipex.c src/utils.c src/split_command.c
 OBJS = $(SRCS:.c=.o)
 SRCS_BONUS = src_bonus/pipex_bonus.c src_bonus/childs_bonus.c \
 			src_bonus/utils_bonus.c src_bonus/get_next_line_bonus.c \

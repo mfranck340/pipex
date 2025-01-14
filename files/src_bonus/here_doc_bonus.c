@@ -24,6 +24,35 @@ static void	free_gnl(void)
 	}
 }
 
+int	process_cmd_var(char *line, int fd)
+{
+	int	i;
+
+	i = 0;
+	while(line[i] != '\0')
+	{
+		if (line[i] == '$')
+		{
+			i++;
+			if (line[i] == '(')
+			{
+				free(line);
+				line = ft_itoa(fd);
+				if (!line)
+					return (0);
+			}
+			else
+			{
+				i++;
+				while (line[i] != '\0' && line[i] != ' ')
+					i++;
+			}
+		}
+		i++;
+	}
+	return (1);
+}
+
 int	get_input_file(char *limiter)
 {
 	int		fd;
@@ -36,7 +65,11 @@ int	get_input_file(char *limiter)
 	{
 		write(1, "> ", 2);
 		line = get_next_line(0);
-		if (ft_strncmp(line, limiter, ft_strlen(limiter)) == 0)
+		if (ft_strncmp(line, limiter, ft_strlen(limiter)) == 0 && line[ft_strlen(limiter)] == '\n')
+		{
+			free(line);
+			break ;
+		}
 		{
 			free(line);
 			close(0);

@@ -1,94 +1,68 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   utils.c                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ffierro- <marvin@42.fr>                    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/29 20:08:54 by ffierro-          #+#    #+#             */
-/*   Updated: 2024/12/29 20:08:55 by ffierro-         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+
 
 #include "../include/pipex.h"
 
-static int	read_files(char *file1, char *file2, int *in_file, int *out_file)
+void	exit_error(char *msg)
 {
-	*in_file = open(file1, O_RDONLY);
-	if (*in_file == -1)
-	{
-		perror(MSG_ERR_IN);
-		return (0);
-	}
-	*out_file = open(file2, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	if (*out_file == -1)
-	{
-		close(*in_file);
-		perror(MSG_ERR_OUT);
-		return (0);
-	}
-	return (1);
+	perror(msg);
+	exit(1);
 }
 
-int	init_pipex(t_pipex **pipex, int argc, char **argv, char **envp)
+char	*find_path(char *cmd, char **envp)
 {
-	*pipex = malloc(sizeof(t_pipex));
-	if (*pipex == NULL)
-	{
-		perror(MSG_ERR_ALLOC);
-		return (0);
-	}
-	if (!read_files(argv[1], argv[argc - 1], &(*pipex)->in_file,
-			&(*pipex)->out_file))
-	{
-		free(*pipex);
-		return (0);
-	}
-	(*pipex)->argv = argv;
-	(*pipex)->envp = envp;
-	(*pipex)->n_cmds = argc - 3;
-	(*pipex)->pipefd = malloc(sizeof(int) * 2 * ((*pipex)->n_cmds - 1));
-	if ((*pipex)->pipefd == 0)
-	{
-		close((*pipex)->in_file);
-		close((*pipex)->out_file);
-		free(*pipex);
-		perror(MSG_ERR_ALLOC);
-		return (0);
-	}
-	return (1);
-}
-
-void	close_pipes(t_pipex *pipex)
-{
-	int	i;
+	char	**paths;
+	char	*path;
+	int		i;
+	char	*part_path;
 
 	i = 0;
-	while (i < 2 * (pipex->n_cmds - 1))
-	{
-		close(pipex->pipefd[i]);
+	while (ft_strnstr(envp[i], "PATH", 4) == 0)
 		i++;
-	}
-}
-
-int	close_and_wait(t_pipex *pipex, int *status)
-{
-	int	i;
-	int	last_status;
-
+	paths = ft_split(envp[i] + 5, ':');
 	i = 0;
-	last_status = 0;
-	close_pipes(pipex);
-	while (i < pipex->n_cmds)
+	while (paths[i])
 	{
-		wait(status);
-		if (WIFEXITED(*status))
-		{
-			last_status = WEXITSTATUS(*status);
-		}
+		part_path = ft_strjoin(paths[i], "/");
+		path = ft_strjoin(part_path, cmd);
+		free(part_path);
+		if (access(path, F_OK) == 0)
+			return (path);
+		free(path);
 		i++;
 	}
-	*status = last_status;
-	free_memory(pipex);
-	return (1);
+	i = -1;
+	while (paths[++i])
+		free(paths[i]);
+	free(paths);
+	return (0);
 }
+
+
+void	execute(char *argv, char **envp)
+{
+	char	**cmd;
+	int 	i;
+	char	*path;
+
+	i = -1;
+	cmd = parse_command(argv);
+	path = find_path(cmd[0], envp);
+	if (!path)	
+	{
+		while (cmd[++i])
+			free(cmd[i]);
+		free(cmd);
+		exit_error("Command not found");
+	}
+
+	if (execve(path, cmd, envp) == -1)
+	{
+		while (cmd[++i])
+			free(cmd[i]);
+		free(cmd);
+		free(path);
+		exit_error("execve");
+	}
+}
+
+
