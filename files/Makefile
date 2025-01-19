@@ -12,15 +12,14 @@
 
 NAME = pipex
 NAME_BONUS = pipex_bonus
-BONUS_MARKER = .bonus_done
 
-LIBFT = libft.a
 LIBFT_DIR = libft
+LIBFT = $(LIBFT_DIR)/libft.a
 
 CC = cc
 LIB = ar rcs
 RM = rm -f
-CFLAGS = -Wall -Wextra -Werror -fsanitize=address,undefined,leak -g3
+CFLAGS = -Wall -Wextra -Werror #-fsanitize=address,undefined,leak -g3
 
 HEADER = include/pipex.h
 HEADER_BONUS = include/pipex_bonus.h
@@ -28,7 +27,12 @@ HEADER_BONUS = include/pipex_bonus.h
 SRC_DIR = src
 SRC_DIR_BONUS = src_bonus
 SRCS = $(SRC_DIR)/pipex.c $(SRC_DIR)/split_command.c $(SRC_DIR)/utils.c
-SRCS_BONUS = $(SRC_DIR_BONUS)/pipex_bonus.c $(SRC_DIR_BONUS)/utils_bonus.c
+SRCS_BONUS = $(SRC_DIR_BONUS)/pipex_bonus.c $(SRC_DIR_BONUS)/utils_bonus.c \
+			$(SRC_DIR_BONUS)/childs_bonus.c \
+			$(SRC_DIR_BONUS)/utils2_bonus.c \
+			$(SRC_DIR_BONUS)/split_command_bonus.c \
+			$(SRC_DIR_BONUS)/here_doc_bonus.c \
+			$(SRC_DIR_BONUS)/get_next_line_bonus.c
 
 OBJ_DIR = obj
 OBJ_DIR_BONUS = obj_bonus
@@ -42,15 +46,15 @@ CLEAR_COLOR = \033[0m
 all: $(NAME)
 
 bonus: $(NAME_BONUS)
-	@touch $(BONUS_MARKER)
+
 
 $(NAME): $(OBJS) $(LIBFT)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBFT_DIR)/$(LIBFT) -o $(NAME)
-	@echo "$(GREEN)$(NAME) created!$(CLEAR_COLOR)"
+	$(CC) $(CFLAGS) $(OBJS) $(LIBFT) -o $(NAME)
+	@echo "$(GREEN)$(NAME) compiled! ;)$(CLEAR_COLOR)"
 
 $(NAME_BONUS): $(OBJS_BONUS) $(LIBFT)
-	$(CC) $(CFLAGS) $(OBJS_BONUS) $(LIBFT_DIR)/$(LIBFT) -o $(NAME_BONUS)
-	@echo "$(GREEN)$(NAME_BONUS) created!$(CLEAR_COLOR)"
+	$(CC) $(CFLAGS) $(OBJS_BONUS) $(LIBFT) -o $(NAME_BONUS)
+	@echo "$(GREEN)$(NAME_BONUS) compiled! ;)$(CLEAR_COLOR)"
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(HEADER)
 	@mkdir -p $(OBJ_DIR)
@@ -64,13 +68,14 @@ $(LIBFT):
 	$(MAKE) -C $(LIBFT_DIR)
 	@echo "$(GREEN)Libft compiled!$(CLEAR_COLOR)"
 
+
 clean:
 	$(RM) $(OBJS) $(OBJS_BONUS)
 	$(MAKE) -C $(LIBFT_DIR) clean
 	@echo "$(RED)Object files removed!$(CLEAR_COLOR)"
 
 fclean: clean
-	$(RM) $(NAME) $(NAME_BONUS) $(BONUS_MARKER)
+	$(RM) $(NAME) $(NAME_BONUS)
 	$(MAKE) -C $(LIBFT_DIR) fclean
 	@echo "$(RED)All files removed!$(CLEAR_COLOR)"
 

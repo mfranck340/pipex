@@ -1,8 +1,16 @@
-
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   pipex.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ffierro- <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/19 18:35:54 by ffierro-          #+#    #+#             */
+/*   Updated: 2025/01/19 18:35:55 by ffierro-         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include "../include/pipex.h"
-
-
 
 void	child_process(char **argv, int *fd, int i)
 {
@@ -29,12 +37,17 @@ void	child_process(char **argv, int *fd, int i)
 	close(file);
 }
 
-void	parent_wait(void)
+void	parent_wait(int *status)
 {
-	int	status;
+	int		i;
 
-	wait(&status);
-	wait(&status);
+	i = -1;
+	while (++i < 2)
+	{
+		wait(status);
+		if (WIFEXITED(*status))
+			*status = WEXITSTATUS(*status);
+	}
 }
 
 void	create_childs(char **argv, char **envp, int *fd)
@@ -59,7 +72,9 @@ void	create_childs(char **argv, char **envp, int *fd)
 int	main(int argc, char **argv, char **envp)
 {
 	int		fd[2];
+	int		status;
 
+	status = 0;
 	if (argc == 5)
 	{
 		if (pipe(fd) == -1)
@@ -67,9 +82,12 @@ int	main(int argc, char **argv, char **envp)
 		create_childs(argv, envp, fd);
 		close(fd[0]);
 		close(fd[1]);
-		parent_wait();
+		parent_wait(&status);
 	}
 	else
+	{
 		ft_printf("Usage: ./pipex <file1> <cmd1> <cmd2> <file2>\n");
-	return (0);
+		return (2);
+	}
+	return (status);
 }

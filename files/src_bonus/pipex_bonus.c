@@ -1,92 +1,93 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex_bonus.c                                      :+:      :+:    :+:   */
+/*   pipex.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ffierro- <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/29 16:33:12 by ffierro-          #+#    #+#             */
-/*   Updated: 2025/01/06 22:43:49 by ffierro-         ###   ########.fr       */
+/*   Created: 2025/01/19 18:35:54 by ffierro-          #+#    #+#             */
+/*   Updated: 2025/01/19 18:35:55 by ffierro-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/pipex_bonus.h"
 
-int	create_pipes(int count, int *pipefd)
+void	parent_wait(int *status, int num_comands)
 {
-	int	i;
+	int		i;
 
-	i = 0;
-	while (i < 2 * (count - 1))
+	i = -1;
+	while (++i < num_comands)
 	{
-		if (pipe(pipefd + i) == -1)
-		{
-			perror(MSG_ERR_PIPE);
-			return (0);
-		}
-		i += 2;
+		wait(status);
+		if (WIFEXITED(*status))
+			*status = WEXITSTATUS(*status);
 	}
-	return (1);
 }
 
-int	spawn_child(t_pipex *pipex)
+void	create_childs(int argc, char **argv, char **envp, int *fd)
 {
-	int	pid;
-	int	i;
+	pid_t	pid;
+	int		i;
+	int		num_cmds;
 
-	i = 0;
-	while (i < pipex->n_cmds)
+	i = -1;
+	num_cmds = get_number_of_commands(argv, argc);
+	while (++i < num_cmds)
 	{
 		pid = fork();
 		if (pid == -1)
-		{
-			perror(MSG_ERR_CHILD);
-			return (0);
-		}
+			exit_error("fork");
 		if (pid == 0)
 		{
-			return (child_process(pipex, i));
+			child_process(argc, argv, fd, i);
+			if (ft_strncmp(argv[1], "here_doc\0", 9) == 0)
+				execute(argv[i + 3], envp, fd);
+			else
+				execute(argv[i + 2], envp, fd);
 		}
-		i++;
 	}
-	return (1);
 }
 
-void	free_memory(t_pipex *pipex)
+void	init_pipes(int **fd, int argc, char **argv)
 {
-	if (ft_strncmp(pipex->argv[1], "here_doc", 8) == 0)
-		unlink(".here_doc");
-	else
-		close(pipex->in_file);
-	close(pipex->out_file);
-	free(pipex->pipefd);
-	free(pipex);
+	int	num_pipes;
+	int	i;
+
+	num_pipes = get_number_of_pipes(argc, argv);
+	*fd = (int *)malloc(sizeof(int) * num_pipes * 2);
+	if (!*fd)
+		exit_error("malloc");
+	i = 0;
+	while (i < num_pipes)
+	{
+		if (pipe(*fd + (i * 2)) == -1)
+			exit_error("pipe");
+		i ++;
+	}
 }
 
 int	main(int argc, char **argv, char **envp)
 {
-	t_pipex	*pipex;
+	int		*fd;
 	int		status;
 
-	if (argc < 5)
+	status = 0;
+	if (argc >= 5)
+	{
+		init_pipes(&fd, argc, argv);
+		create_childs(argc, argv, envp, fd);
+		close_pipes(fd, get_number_of_pipes(argc, argv));
+		parent_wait(&status, get_number_of_commands(argv, argc));
+		if (ft_strncmp(argv[1], "here_doc\0", 9) == 0)
+			unlink(".here_doc");
+		free(fd);
+	}
+	else
 	{
 		ft_printf("Usage:\t./pipex <file1> <cmd1> ... <cmd2> <file2>\n");
-		ft_printf("\t./pipex here_doc LIMITER <cmd1> ... <cmd2> <file2>\n");
-		return (1);
+		ft_printf("\t./pipex here_doc <limiter> <cmd1> ... <cmd2> <file2>\n");
+		return (2);
 	}
-	if (!init_pipex(&pipex, argc, argv, envp))
-		return (1);
-	if (!create_pipes(pipex->n_cmds, pipex->pipefd))
-	{
-		free_memory(pipex);
-		return (1);
-	}
-	if (!spawn_child(pipex))
-	{
-		free_memory(pipex);
-		return (1);
-	}
-	if (!close_and_wait(pipex, &status))
-		return (1);
 	return (status);
 }

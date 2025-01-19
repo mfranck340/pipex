@@ -1,135 +1,65 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   childs_bonus.c                                     :+:      :+:    :+:   */
+/*   childs.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ffierro- <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/29 20:09:14 by ffierro-          #+#    #+#             */
-/*   Updated: 2025/01/06 22:43:33 by ffierro-         ###   ########.fr       */
+/*   Created: 2025/01/19 23:40:36 by ffierro-          #+#    #+#             */
+/*   Updated: 2025/01/19 23:40:38 by ffierro-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/pipex_bonus.h"
 
-static char	*get_paths(char **envp)
+int	open_infile(char **argv)
 {
-	int	i;
+	int	file;
 
-	i = 0;
-	while (envp[i] != 0)
-	{
-		if (ft_strncmp(envp[i], "PATH=", 5) == 0)
-		{
-			return (envp[i] + 5);
-		}
-		i++;
-	}
-	return (0);
+	if (ft_strncmp(argv[1], "here_doc\0", 9) == 0)
+		file = get_input_file(argv[2]);
+	else
+		file = open(argv[1], O_RDONLY);
+	if (file == -1)
+		exit_error("open");
+	return (file);
 }
 
-static char	*get_path_command(char *command, char **paths)
+int	open_outfile(char **argv, int argc)
 {
-	int		i;
-	char	*path_aux;
+	int	file;
 
-	if (access(command, F_OK) == 0)
-		return (command);
-	i = 0;
-	while (paths[i] != 0)
-	{
-		path_aux = ft_strjoin(paths[i], "/");
-		if (path_aux == 0)
-		{
-			perror(MSG_ERR_JOIN);
-			return (0);
-		}
-		path_aux = ft_strjoin(path_aux, command);
-		if (path_aux == 0)
-		{
-			perror(MSG_ERR_JOIN);
-			return (0);
-		}
-		if (access(path_aux, F_OK) == 0)
-			return (path_aux);
-		i++;
-	}
-	return (0);
+	if (ft_strncmp(argv[1], "here_doc\0", 9) == 0)
+		file = open(argv[argc - 1], O_WRONLY | O_CREAT | O_APPEND, 0644);
+	else
+		file = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (file == -1)
+		exit_error("open");
+	return (file);
 }
 
-static char	*search_path(char *command, char **envp)
+void	child_process(int argc, char **argv, int *fd, int i)
 {
-	char	**paths;
-	char	*path_aux;
-
-	path_aux = get_paths(envp);
-	paths = ft_split(path_aux, ':');
-	if (paths == 0)
-	{
-		perror(MSG_ERR_SPLIT);
-		return (0);
-	}
-	path_aux = get_path_command(command, paths);
-	if (path_aux == 0)
-	{
-		perror(MSG_ERR_JOIN);
-		return (0);
-	}
-	return (path_aux);
-}
-
-static int	execute_command(char *command, char **envp)
-{
-	char	**args;
-	char	*path;
-	int		i;
-
-	args = ft_split(command, ' ');
-	if (args == NULL)
-	{
-		perror(MSG_ERR_SPLIT);
-		return (1);
-	}
-	path = search_path(args[0], envp);
-	if (path == NULL)
-	{
-		perror(MSG_ERR_JOIN);
-		return (1);
-	}
-	i = 0;
-	while (envp[i] != NULL)
-	{
-		execve(path, args, envp);
-		i++;
-	}
-	perror(MSG_ERR_EXEC);
-	return (1);
-}
-
-int	child_process(t_pipex *pipex, int i)
-{
-	int	n_cmd;
+	int	file;
 
 	if (i == 0)
 	{
-		dup2(pipex->in_file, STDIN_FILENO);
-		dup2(pipex->pipefd[1], STDOUT_FILENO);
+		file = open_infile(argv);
+		dup2(file, STDIN_FILENO);
+		dup2(fd[1], STDOUT_FILENO);
+		close(file);
 	}
-	else if (i == pipex->n_cmds - 1)
+	else if (i == get_number_of_commands(argv, argc) - 1)
 	{
-		dup2(pipex->pipefd[2 * i - 2], STDIN_FILENO);
-		dup2(pipex->out_file, STDOUT_FILENO);
+		file = open_outfile(argv, argc);
+		dup2(fd[(i * 2) - 2], STDIN_FILENO);
+		dup2(file, STDOUT_FILENO);
+		close(file);
 	}
 	else
 	{
-		dup2(pipex->pipefd[2 * i - 2], STDIN_FILENO);
-		dup2(pipex->pipefd[2 * i + 1], STDOUT_FILENO);
+		dup2(fd[(i * 2) - 2], STDIN_FILENO);
+		dup2(fd[(i * 2) + 1], STDOUT_FILENO);
 	}
-	close_pipes(pipex);
-	if (pipex->in_file == 0)
-		n_cmd = i + 3;
-	else
-		n_cmd = i + 2;
-	execute_command(pipex->argv[n_cmd], pipex->envp);
-	return (1);
+	close_pipes(fd, get_number_of_pipes(argc, argv));
 }

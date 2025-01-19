@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: ffierro- <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/29 16:33:23 by ffierro-          #+#    #+#             */
-/*   Updated: 2025/01/06 22:42:39 by ffierro-         ###   ########.fr       */
+/*   Created: 2025/01/19 23:47:44 by ffierro-          #+#    #+#             */
+/*   Updated: 2025/01/19 23:47:45 by ffierro-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,32 +19,17 @@
 # include <sys/wait.h>
 # include "../libft/libft.h"
 
-# define MSG_ERR_PIPE "Error creating pipe"
-# define MSG_ERR_CHILD "Error creating child process"
-# define MSG_ERR_EXEC "Error executing command"
-# define MSG_ERR_IN "Error opening input file"
-# define MSG_ERR_OUT "Error opening output file"
-# define MSG_ERR_JOIN "Error joining path"
-# define MSG_ERR_SPLIT "Error splitting path"
-# define MSG_ERR_ALLOC "Error allocating memory"
 # define BUFFER_SIZE 8
 
-typedef struct s_pipex
-{
-	int		in_file;
-	int		out_file;
-	char	**argv;
-	char	**envp;
-	int		n_cmds;
-	int		*pipefd;
-}	t_pipex;
-
-int		child_process(t_pipex *pipex, int i);
-int		init_pipex(t_pipex **pipex, int argc, char **argv, char **envp);
-void	close_pipes(t_pipex *pipex);
-int		close_and_wait(t_pipex *pipex, int *status);
-void	free_memory(t_pipex *pipex);
-char	*get_next_line(int fd);
+void	execute(char *argv, char **envp, int *fd);
+void	exit_error(char *msg);
+char	**parse_command(char *command);
 int		get_input_file(char *limiter);
+char	*get_next_line(int fd);
+void	child_process(int argc, char **argv, int *fd, int i);
+int		get_number_of_commands(char **argv, int argc);
+int		get_number_of_pipes(int argc, char **argv);
+void	close_pipes(int *fd, int num_pipes);
+char	*ft_strjoin_gnl(char *s1, char *s2);
 
 #endif

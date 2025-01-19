@@ -89,7 +89,7 @@ static char	*read_file(int fd, char *str)
 		if (bytes < 0)
 			return (free_memory_gnl(str, buffer));
 		buffer[bytes] = '\0';
-		str = ft_strjoin(str, buffer);
+		str = ft_strjoin_gnl(str, buffer);
 		if (!str)
 			return (free_memory_gnl(str, buffer));
 	}
