@@ -12,47 +12,68 @@
 
 NAME = pipex
 NAME_BONUS = pipex_bonus
+BONUS_MARKER = .bonus_done
+
+LIBFT = libft.a
+LIBFT_DIR = libft
+
 CC = cc
 LIB = ar rcs
 RM = rm -f
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror -fsanitize=address,undefined,leak -g3
+
 HEADER = include/pipex.h
 HEADER_BONUS = include/pipex_bonus.h
-SRCS = src/pipex.c src/utils.c src/split_command.c
-OBJS = $(SRCS:.c=.o)
-SRCS_BONUS = src_bonus/pipex_bonus.c src_bonus/childs_bonus.c \
-			src_bonus/utils_bonus.c src_bonus/get_next_line_bonus.c \
-			src_bonus/here_doc_bonus.c
-OBJS_BONUS = $(SRCS_BONUS:.c=.o)
+
+SRC_DIR = src
+SRC_DIR_BONUS = src_bonus
+SRCS = $(SRC_DIR)/pipex.c $(SRC_DIR)/split_command.c $(SRC_DIR)/utils.c
+SRCS_BONUS = $(SRC_DIR_BONUS)/pipex_bonus.c $(SRC_DIR_BONUS)/utils_bonus.c
+
+OBJ_DIR = obj
+OBJ_DIR_BONUS = obj_bonus
+OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+OBJS_BONUS = $(SRCS_BONUS:$(SRC_DIR_BONUS)/%.c=$(OBJ_DIR_BONUS)/%.o)
+
+RED         = \033[91;1m
+GREEN       = \033[92;1m
+CLEAR_COLOR = \033[0m
 
 all: $(NAME)
 
 bonus: $(NAME_BONUS)
+	@touch $(BONUS_MARKER)
 
-$(NAME): $(OBJS)
-	$(MAKE) -C libft
-	cp libft/libft.a libft.a
-	$(CC) $(CFLAGS) -o $(NAME) $(OBJS) libft.a
+$(NAME): $(OBJS) $(LIBFT)
+	$(CC) $(CFLAGS) $(OBJS) $(LIBFT_DIR)/$(LIBFT) -o $(NAME)
+	@echo "$(GREEN)$(NAME) created!$(CLEAR_COLOR)"
 
-src/%.o: src/%.c $(HEADER)
+$(NAME_BONUS): $(OBJS_BONUS) $(LIBFT)
+	$(CC) $(CFLAGS) $(OBJS_BONUS) $(LIBFT_DIR)/$(LIBFT) -o $(NAME_BONUS)
+	@echo "$(GREEN)$(NAME_BONUS) created!$(CLEAR_COLOR)"
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(HEADER)
+	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CFLAGS) -Iinclude -c $< -o $@
 
-$(NAME_BONUS): $(OBJS_BONUS)
-	$(MAKE) -C libft
-	cp libft/libft.a libft.a
-	$(CC) $(CFLAGS) -o $(NAME_BONUS) $(OBJS_BONUS) libft.a
-
-src_bonus/%.o: src_bonus/%.c $(HEADER_BONUS)
+$(OBJ_DIR_BONUS)/%.o: $(SRC_DIR_BONUS)/%.c $(HEADER_BONUS)
+	@mkdir -p $(OBJ_DIR_BONUS)
 	$(CC) $(CFLAGS) -Iinclude -c $< -o $@
+
+$(LIBFT): 
+	$(MAKE) -C $(LIBFT_DIR)
+	@echo "$(GREEN)Libft compiled!$(CLEAR_COLOR)"
 
 clean:
 	$(RM) $(OBJS) $(OBJS_BONUS)
-	$(MAKE) -C libft clean
+	$(MAKE) -C $(LIBFT_DIR) clean
+	@echo "$(RED)Object files removed!$(CLEAR_COLOR)"
 
 fclean: clean
-	$(RM) $(NAME) $(NAME_BONUS) libft.a
-	$(MAKE) -C libft fclean
+	$(RM) $(NAME) $(NAME_BONUS) $(BONUS_MARKER)
+	$(MAKE) -C $(LIBFT_DIR) fclean
+	@echo "$(RED)All files removed!$(CLEAR_COLOR)"
 
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re bonus
