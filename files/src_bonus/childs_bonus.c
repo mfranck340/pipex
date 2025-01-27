@@ -1,18 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   childs.c                                           :+:      :+:    :+:   */
+/*   childs_bonus.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ffierro- <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 23:40:36 by ffierro-          #+#    #+#             */
-/*   Updated: 2025/01/19 23:40:38 by ffierro-         ###   ########.fr       */
+/*   Updated: 2025/01/21 14:10:06 by ffierro-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/pipex_bonus.h"
 
-int	open_infile(char **argv)
+static int	open_infile(char **argv)
 {
 	int	file;
 
@@ -25,7 +25,7 @@ int	open_infile(char **argv)
 	return (file);
 }
 
-int	open_outfile(char **argv, int argc)
+static int	open_outfile(char **argv, int argc)
 {
 	int	file;
 

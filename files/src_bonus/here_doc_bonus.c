@@ -12,7 +12,7 @@
 
 #include "../include/pipex_bonus.h"
 
-void	free_gnl(void)
+static void	free_gnl(void)
 {
 	char	*line;
 

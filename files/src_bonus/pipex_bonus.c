@@ -1,18 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.c                                            :+:      :+:    :+:   */
+/*   pipex_bonus.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ffierro- <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 18:35:54 by ffierro-          #+#    #+#             */
-/*   Updated: 2025/01/19 18:35:55 by ffierro-         ###   ########.fr       */
+/*   Updated: 2025/01/21 14:09:31 by ffierro-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/pipex_bonus.h"
 
-void	parent_wait(int *status, int num_comands)
+static void	parent_wait(int *status, int num_comands)
 {
 	int		i;
 
@@ -25,7 +25,7 @@ void	parent_wait(int *status, int num_comands)
 	}
 }
 
-void	create_childs(int argc, char **argv, char **envp, int *fd)
+static void	create_childs(int argc, char **argv, char **envp, int *fd)
 {
 	pid_t	pid;
 	int		i;
@@ -49,7 +49,7 @@ void	create_childs(int argc, char **argv, char **envp, int *fd)
 	}
 }
 
-void	init_pipes(int **fd, int argc, char **argv)
+static void	init_pipes(int **fd, int argc, char **argv)
 {
 	int	num_pipes;
 	int	i;

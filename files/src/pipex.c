@@ -12,7 +12,7 @@
 
 #include "../include/pipex.h"
 
-void	child_process(char **argv, int *fd, int i)
+static void	child_process(char **argv, int *fd, int i)
 {
 	int		file;
 
@@ -37,7 +37,7 @@ void	child_process(char **argv, int *fd, int i)
 	close(file);
 }
 
-void	parent_wait(int *status)
+static void	parent_wait(int *status)
 {
 	int		i;
 
@@ -50,7 +50,7 @@ void	parent_wait(int *status)
 	}
 }
 
-void	create_childs(char **argv, char **envp, int *fd)
+static void	create_childs(char **argv, char **envp, int *fd)
 {
 	pid_t	pid;
 	int		i;

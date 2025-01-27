@@ -18,7 +18,7 @@ void	exit_error(char *msg)
 	exit(1);
 }
 
-void	free_array(char **array)
+static void	free_array(char **array)
 {
 	int	i;
 
@@ -28,14 +28,14 @@ void	free_array(char **array)
 	free(array);
 }
 
-char	*find_path(char *cmd, char **envp)
+static char	*find_path(char *cmd, char **envp)
 {
 	char	**paths;
 	char	*path;
 	int		i;
 	char	*part_path;
 
-	if (access(cmd, F_OK) == 0)
+	if (access(cmd, F_OK | X_OK) == 0)
 		return (cmd);
 	i = 0;
 	while (ft_strnstr(envp[i], "PATH", 4) == 0)
@@ -47,7 +47,7 @@ char	*find_path(char *cmd, char **envp)
 		part_path = ft_strjoin(paths[i], "/");
 		path = ft_strjoin(part_path, cmd);
 		free(part_path);
-		if (access(path, F_OK) == 0)
+		if (access(path, F_OK | X_OK) == 0)
 			return (path);
 		free(path);
 		i++;

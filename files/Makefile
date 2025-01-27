@@ -12,14 +12,15 @@
 
 NAME = pipex
 NAME_BONUS = pipex_bonus
+BONUS_MARKER = .marker
 
 LIBFT_DIR = libft
 LIBFT = $(LIBFT_DIR)/libft.a
 
 CC = cc
 LIB = ar rcs
-RM = rm -f
-CFLAGS = -Wall -Wextra -Werror #-fsanitize=address,undefined,leak -g3
+RM = rm -rf
+CFLAGS = -Wall -Wextra -Werror
 
 HEADER = include/pipex.h
 HEADER_BONUS = include/pipex_bonus.h
@@ -45,7 +46,11 @@ CLEAR_COLOR = \033[0m
 
 all: $(NAME)
 
-bonus: $(NAME_BONUS)
+bonus: $(BONUS_MARKER)
+
+$(BONUS_MARKER): $(NAME_BONUS)
+	@cp $(NAME_BONUS) $(NAME)
+	@touch $(BONUS_MARKER)
 
 
 $(NAME): $(OBJS) $(LIBFT)
@@ -70,12 +75,13 @@ $(LIBFT):
 
 
 clean:
-	$(RM) $(OBJS) $(OBJS_BONUS)
+	$(RM) $(OBJ_DIR) $(OBJ_DIR_BONUS)
 	$(MAKE) -C $(LIBFT_DIR) clean
 	@echo "$(RED)Object files removed!$(CLEAR_COLOR)"
 
 fclean: clean
-	$(RM) $(NAME) $(NAME_BONUS)
+	$(RM) $(NAME) $(NAME_BONUS) $(BONUS_MARKER)
+	$(RM) $(OBJ_DIR) $(OBJ_DIR_BONUS)
 	$(MAKE) -C $(LIBFT_DIR) fclean
 	@echo "$(RED)All files removed!$(CLEAR_COLOR)"
 
